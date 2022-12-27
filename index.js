@@ -50,6 +50,7 @@ const normalizedNodeVersion = normalizeSemverString(process.version);
 const normalizedPackageVersion = normalizeSemverString(package.version);
 const lowestNodeVersion = 16;
 const lowestPackageVersion = 0;
+const templateName = 'react';
 
 // manually catch most recent major version bump
 let allClearEnv = true;
@@ -106,8 +107,10 @@ function fetchTarball() {
     function writeToFile(response) {
       response.pipe(fs.createWriteStream(temp)).on('close', resolve);
     }
-    // TODO: this version needs to match
-    const TAR_URL = 'https://github.com/evenstephenr/bootstrapper/archive/refs/tags/v0.0.1.tar.gz';
+    // `minor` versions stabilize tarball assets, so we need to normalize the version
+    const TAR_VERSION = `v${normalizedPackageVersion[0]}.${normalizedPackageVersion[1]}.0`;
+    const TAR_URL = `https://github.com/evenstephenr/bootstrapper/archive/refs/tags/${TAR_VERSION}.tar.gz`;
+    console.log("INFO: retrieving package template", templateName, "from remote", TAR_URL);
     https.get(TAR_URL, function(response) {
       if (response.statusCode > 300 && response.statusCode < 400 && response.headers.location) {
         if (url.parse(response.headers.location).hostname) {
