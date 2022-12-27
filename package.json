@@ -1,0 +1,21 @@
+{
+  "name": "@evenstephenr/bootstrapper",
+  "version": "0.0.1",
+  "description": "a node cli tool to help you stand up federated modules",
+  "main": "index.js",
+  "scripts": {
+    "bump-minor": "npm version minor && npm publish",
+    "bump-patch": "npm version patch && npm publish",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Stephen J. Ramirez",
+  "license": "ISC",
+  "bin": {
+    "@evenstephenr/bootstrapper": "./index.js"
+  },
+  "dependencies": {
+    "tar-pack": "^3.4.1",
+    "yargs": "^17.6.2"
+  }
+}
