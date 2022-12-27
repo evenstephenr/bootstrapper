@@ -19,7 +19,7 @@ You can use this base template to build a microfrontend or shared hook. I do thi
 
 ## Maintenance / updating this package
 
-> NOTE: the templates for this package are currently being served through github assets. Because of this, we need strict semver policies so we don't break production. This can be fixed if we move the templates to a separate repo or remote location
+> NOTE: the templates for this package are currently being served through github assets. Because of this, we need strict semver policies so we don't break production. This can be fixed if we move the templates to a different remote or separate location (off github)
 
 `npm version major`
 * Adding a new template (post-launch)

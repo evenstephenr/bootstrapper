@@ -66,7 +66,7 @@ async function prepareDirectory() {
   if (parseInt(normalizedNodeVersion[0]) < lowestNodeVersion) {
     console.log(
       ` WARNING: you are not using a recent version of node!`,
-      `-> want v18.0.0^, found ${process.version}\n`
+      `-> want v${lowestNodeVersion}.0.0^, found ${process.version}\n`
     );
     allClearEnv = false;
   }
@@ -74,7 +74,7 @@ async function prepareDirectory() {
   if (parseInt(normalizedPackageVersion[0]) < lowestPackageVersion) {
     console.log(
       ` WARNING: you are not using the most recent version of ${package.name}!`,
-      `-> want v1.0.0^, found v${package.version}\n`
+      `-> want v${lowestPackageVersion}.0.0^, found v${package.version}\n`
     );
     allClearEnv = false;
   }
