@@ -15,7 +15,6 @@ function panic(message) {
 
 const https = require('https');
 var url = require('url');
-var read = require('fs').createReadStream;
 const tar = require('tar');
 const package = require("./package.json");
 const { pipeline } = require("stream");
@@ -30,10 +29,12 @@ const argv = require("yargs/yargs")(process.argv.slice(2))
   )
   .string("d")
   .alias("d", "dir")
-  .describe("d", "Specify a target directory (full path)")
+  .describe("d", "Specify a target directory")
   .string("dry")
   // .alias("dry", "dry-run")
   // .describe("dry", "Display changes without touching any new files")
+  .boolean("overrideExistingDir")
+  .describe("overrideExistingDir", "Force -d to replace an existing matching directory, if it exists")
   .demandCommand(1)
   .example("$ npx @evenstephenr/react-bootstrapper micro-react-module")
   .example(
@@ -70,14 +71,21 @@ if (parseInt(normalizedPackageVersion[0]) < lowestPackageVersion) {
 }
 
 if (!allClearEnv) {
-  console.log("Things may not work as expected...\n");
+  console.log("Things may not work as expected...");
+  console.log();
 }
 
 // check and build directory
-if (fs.existsSync(targetDir)) {
+if (fs.existsSync(targetDir) && !argv.overrideExistingDir) {
   panic(
     `ERROR: ${targetDir} exists. Please choose a new directory or remove the existing one`
   );
+}
+
+if (fs.existsSync(targetDir) && argv.overrideExistingDir) {
+  console.log("INFO: Matching dir found, removing existing directory");
+  console.log();
+  fs.rmSync(targetDir, { recursive: true });
 }
 
 console.log(`Let's make your module '${targetDir}...'`);
@@ -134,6 +142,7 @@ async function main() {
   await extractTemplate();
   // TODO: add cleanup function
   fs.rmSync(temp);
+  // TODO: `::PACKAGE_NAME::` logic
   } catch (e) {
     fs.rmdirSync(targetDir, { recursive: true, force: true });
     panic('ERROR: ' + e);
