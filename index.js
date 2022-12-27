@@ -15,11 +15,13 @@ function panic(message) {
 
 const https = require('https');
 var url = require('url');
-var read = require('fs').createReadStream
-var unpack = require('tar-pack').unpack
+var read = require('fs').createReadStream;
+const tar = require('tar');
 const package = require("./package.json");
+const { pipeline } = require("stream");
 const fs = require("fs");
 const path = require("path");
+const { resolve } = require('path');
 const argv = require("yargs/yargs")(process.argv.slice(2))
   .usage("Usage: $0 <command> [options]")
   .command(
@@ -79,40 +81,68 @@ if (fs.existsSync(targetDir)) {
 }
 
 console.log(`Let's make your module '${targetDir}...'`);
+console.log();
 
-try {
-  const temp = targetDir + '/remote.tar.gz';
-  fs.mkdirSync(targetDir);
-  // Object.keys(templates).forEach((templateName) => {
-  //   fs.writeFileSync(path.resolve(targetDir, templateName), templates[templateName])
-  // });
-  function writeToFile(response) {
-    response.pipe(fs.createWriteStream(temp));
-    read(temp).pipe(unpack(targetDir, function (err) {
-      if (err) {console.error(err.stack)}
-    }));
-  }
-  const TAR_URL = 'https://github.com/evenstephenr/react-query/archive/refs/tags/v1.0.1.tar.gz';
-  https.get(TAR_URL, function(response) {
-    if (response.statusCode > 300 && response.statusCode < 400 && response.headers.location) {
-      if (url.parse(response.headers.location).hostname) {
-        https.get(response.headers.location, writeToFile);
-      } else {
-        https.get(url.resolve(url.parse(TAR_URL).hostname, response.headers.location), writeToFile);
-      }
-    } else {
-      writeToFile(response);
-    }
-  });
-} catch (e) {
-  fs.rmdirSync(targetDir);
-  panic('ERROR: ' + e);
+fs.mkdirSync(targetDir);
+
+// pull down remote tar, extract template
+if (!argv.t) {
+  console.log("INFO: No template specified, defaulting to 'react'");
+  console.log();
 }
 
-console.log('Success! :)');
+const temp = targetDir + '/remote.tar.gz';
 
-// TODO: working prototype w/ README
+function fetchTarball() {
+  return new Promise((resolve, reject) => {
+    function writeToFile(response) {
+      response.pipe(fs.createWriteStream(temp)).on('close', resolve);
+    }
+    // TODO: this version needs to match
+    const TAR_URL = 'https://github.com/evenstephenr/bootstrapper/archive/refs/tags/v0.0.1.tar.gz';
+    https.get(TAR_URL, function(response) {
+      if (response.statusCode > 300 && response.statusCode < 400 && response.headers.location) {
+        if (url.parse(response.headers.location).hostname) {
+          https.get(response.headers.location, writeToFile);
+        } else {
+          https.get(url.resolve(url.parse(TAR_URL).hostname, response.headers.location), writeToFile);
+        }
+      } else {
+        writeToFile(response);
+      }
+    });
+  });
+}
+
 // TODO: implement '--template' -> 'react' (default), 'typescript', 'react-with-ts', 'go', etc.
+function extractTemplate() {
+  return new Promise((resolve, reject) => {
+    fs.createReadStream(temp).pipe(
+      tar.x({
+        // file: 'remote.tar.gz',
+        filter: path => path.includes('/templates/react'),
+        strip: 3,
+        C: packageName,
+      })
+    ).on('close', resolve);
+  });
+}
+
+async function main() {
+  try {
+  await fetchTarball();
+  await extractTemplate();
+  // TODO: add cleanup function
+  fs.rmSync(temp);
+  } catch (e) {
+    fs.rmdirSync(targetDir, { recursive: true, force: true });
+    panic('ERROR: ' + e);
+    return e;
+  }
+}
+
+main();
+// TODO: working prototype w/ README
 // TODO: better support for package metadata (desc., author)?
 // TODO: cli arg '--help', '--h' should print usage (README time)
 // TODO: add --license support

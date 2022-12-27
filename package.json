@@ -15,7 +15,7 @@
     "@evenstephenr/bootstrapper": "./index.js"
   },
   "dependencies": {
-    "tar-pack": "^3.4.1",
+    "tar": "^6.1.13",
     "yargs": "^17.6.2"
   }
 }
