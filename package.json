@@ -1,7 +1,7 @@
 {
   "name": "@evenstephenr/bootstrapper",
   "version": "0.0.1",
-  "description": "a node cli tool to help you stand up federated modules",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "bump-minor": "npm version minor && npm publish",
